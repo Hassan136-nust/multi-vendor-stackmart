@@ -9,6 +9,7 @@
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^13.5.0",
+    "axios": "^1.18.0",
     "country-state-city": "^3.2.1",
     "postcss": "^8.5.15",
     "react": "^19.2.7",
@@ -17,6 +18,7 @@
     "react-lottie": "^1.2.10",
     "react-router-dom": "^7.18.0",
     "react-scripts": "5.0.1",
+    "react-toastify": "^11.1.0",
     "web-vitals": "^2.1.4"
   },
   "scripts": {
