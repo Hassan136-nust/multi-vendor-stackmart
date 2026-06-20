@@ -54,13 +54,13 @@ const Header = ({ activeHeading }) => {
   return (
     <>
       <div className={`${styles.section}`}>
-        <div className="hidden 800px:h-[50px] 800px:my-[20px] 800px:flex items-center justify-between">
+        <div className="hidden 800px:h-[90px] 800px:my-[20px] 800px:flex items-center justify-between">
   <div className="flex items-center">
     <Link to="/">
       <img
         src="main.png"
         alt="Logo"
-        className="h-[139px]  w-auto object-contain" 
+        className="h-[85px] w-auto object-contain" 
       />
     </Link>
   </div>
@@ -117,26 +117,36 @@ const Header = ({ activeHeading }) => {
         <div
           className={`${styles.section} relative ${styles.noramlFlex} justify-between`}
         >
-          {/* categories */}
-          <div onClick={() => setDropDown(!dropDown)}>
-            <div className="relative h-[60px] mt-[10px] w-[270px] hidden 1000px:block">
-              <BiMenuAltLeft size={30} className="absolute top-3 left-2" />
-              <button
-                className={`h-[100%] w-full flex justify-between items-center pl-10 bg-white font-sans text-lg font-[500] select-none rounded-t-md`}
-              >
-                All Categories
-              </button>
-              <IoIosArrowDown
-                size={20}
-                className="absolute right-2 top-4 cursor-pointer"
-                onClick={() => setDropDown(!dropDown)}
+          {/* Logo in sticky navbar */}
+          <div className="flex items-center">
+            <Link to="/">
+              <img
+                src="main.png"
+                alt="Logo"
+                className="h-[60px] w-auto object-contain" 
               />
-              {dropDown ? (
-                <DropDown
-                  categoriesData={categoriesData}
-                  setDropDown={setDropDown}
+            </Link>
+            {/* categories */}
+            <div onClick={() => setDropDown(!dropDown)} className="ml-4">
+              <div className="relative h-[60px] mt-[10px] w-[270px] hidden 1000px:block">
+                <BiMenuAltLeft size={30} className="absolute top-3 left-2" />
+                <button
+                  className={`h-[100%] w-full flex justify-between items-center pl-10 bg-white font-sans text-lg font-[500] select-none rounded-t-md`}
+                >
+                  All Categories
+                </button>
+                <IoIosArrowDown
+                  size={20}
+                  className="absolute right-2 top-4 cursor-pointer"
+                  onClick={() => setDropDown(!dropDown)}
                 />
-              ) : null}
+                {dropDown ? (
+                  <DropDown
+                    categoriesData={categoriesData}
+                    setDropDown={setDropDown}
+                  />
+                ) : null}
+              </div>
             </div>
           </div>
           {/* navitems */}
@@ -208,24 +218,19 @@ const Header = ({ activeHeading }) => {
         }
       w-full h-[60px] bg-[#fff] z-50 top-0 left-0 shadow-sm 800px:hidden`}
       >
-        <div className="w-full flex items-center justify-between">
-          <div>
+        <div className="w-full flex items-center justify-between px-4">
+          <div className="flex items-center gap-3">
             <BiMenuAltLeft
               size={40}
-              className="ml-4"
               onClick={() => setOpen(true)}
             />
-          </div>
-          <div>
-          <div>
             <Link to="/">
               <img
                 src="main.png"
-                alt=""
-                className="h-30 w-auto cursor-pointer" 
+                alt="Logo"
+                className="h-[60px] w-auto cursor-pointer" 
               />
             </Link>
-          </div>
           </div>
           <div>
             <div

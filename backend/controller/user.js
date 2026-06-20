@@ -193,12 +193,14 @@ router.post("/activation", async (req, res, next) => {
 router.post("/login-user", async (req, res, next) => {
   try {
     const { email, password } = req.body;
+    console.log("Login request:", { email, password });
 
     if (!email || !password) {
       return next(new ErrorHandler("Please provide email and password!", 400));
     }
 
     const user = await User.findOne({ email }).select("+password");
+    console.log("Found user:", user);
 
     if (!user) {
       return next(new ErrorHandler("Wrong email or password!", 401));
@@ -209,12 +211,14 @@ router.post("/login-user", async (req, res, next) => {
     }
 
     const isPasswordMatched = await user.comparePassword(password);
+    console.log("Password matched:", isPasswordMatched);
 
     if (!isPasswordMatched) {
       return next(new ErrorHandler("Wrong email or password!", 401));
     }
 
     const token = user.getJwtToken();
+    console.log("Generated token:", token);
 
     res.status(200).cookie("token", token, {
       expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
@@ -228,6 +232,7 @@ router.post("/login-user", async (req, res, next) => {
     });
 
   } catch (error) {
+    console.error("Login error:", error);
     next(error);
   }
 });
