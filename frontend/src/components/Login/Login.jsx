@@ -44,6 +44,7 @@ const Login = () => {
         window.location.reload(true);
       })
       .catch((err) => {
+        console.error("Login error:", err);
         const msg = err.response?.data?.message || err.message || "Something went wrong";
         toast.error(msg);
       })

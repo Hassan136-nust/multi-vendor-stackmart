@@ -61,6 +61,7 @@ const Singup = () => {
         setShowResend(true);
       })
       .catch((error) => {
+        console.error("Signup error:", error);
         const msg =
           error.response?.data?.message ||
           error.message ||
@@ -80,6 +81,7 @@ const Singup = () => {
       });
       toast.success(res.data.message);
     } catch (error) {
+      console.error("Resend activation error:", error);
       const msg =
         error.response?.data?.message ||
         error.message ||
