@@ -13,26 +13,32 @@ const Singup = () => {
   const [password, setPassword] = useState("");
   const [visible, setVisible] = useState(false);
   const [avatar, setAvatar] = useState(null);
+  const [avatarPreview, setAvatarPreview] = useState(null);
   const navigate = useNavigate()
   
 
-  const handleFileInputChange = (e) => {
-    const reader = new FileReader();
 
-    reader.onload = () => {
-      if (reader.readyState === 2) {
-        setAvatar(reader.result);
-      }
-    };
-
-    reader.readAsDataURL(e.target.files[0]);
-  };
+const handleFileInputChange = (e) => {
+  const file = e.target.files[0];
+  setAvatar(file);
+  if (file) {
+    setAvatarPreview(URL.createObjectURL(file));
+  }
+};
 
  const handleSubmit = async (e) => {
     e.preventDefault();
 
+    const formData = new FormData();
+    formData.append("name", name);
+    formData.append("email", email);
+    formData.append("password", password);
+    if (avatar) {
+      formData.append("avatar", avatar);
+    }
+
     axios
-      .post(`${server}/user/create-user`, { name, email, password, avatar })
+      .post(`${server}/user/create-user`, formData)
       .then(() => {
         toast.success("Signup successful! Please login to your account.");
         setTimeout(() => {
@@ -44,6 +50,7 @@ const Singup = () => {
         setEmail("");
         setPassword("");
         setAvatar(null);
+        setAvatarPreview(null);
       })
       .catch((error) => {
         const msg =
@@ -145,9 +152,9 @@ const Singup = () => {
               ></label>
               <div className="mt-2 flex items-center">
                 <span className="inline-block h-8 w-8 rounded-full overflow-hidden">
-                  {avatar ? (
+                  {avatarPreview ? (
                     <img
-                      src={avatar}
+                      src={avatarPreview}
                       alt="avatar"
                       className="h-full w-full object-cover rounded-full"
                     />
