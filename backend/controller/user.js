@@ -9,6 +9,9 @@ const ErrorHandler = require("../utils/ErrorHandler");
 const sendMail = require("../utils/sendMail");
 const fs = require("fs");
 
+// Store temporary user data for resend (in real app, use Redis or similar)
+const tempUserData = new Map();
+
 router.post("/create-user", upload.single("avatar"), async (req, res, next) => {
   try {
     const { name, email, password } = req.body;
@@ -28,7 +31,7 @@ router.post("/create-user", upload.single("avatar"), async (req, res, next) => {
       });
 
 
-      return next(new ErrorHandler("User already exists", 400));
+      return next(new ErrorHandler("User already registered", 400));
     }
 
     // uploaded file name
@@ -55,6 +58,9 @@ router.post("/create-user", upload.single("avatar"), async (req, res, next) => {
       { expiresIn: "5m" }
     );
 
+    // Store temp data
+    tempUserData.set(email, userData);
+
     // create activation link
     const activationUrl = `http://localhost:3000/activation/${activationToken}`;
 
@@ -74,7 +80,62 @@ router.post("/create-user", upload.single("avatar"), async (req, res, next) => {
 
     res.status(201).json({
       success: true,
-      message: `Please check your email: ${userData.email} to activate your account!`
+      message: `Activation link sent! Please check your email: ${userData.email} to activate your account!`,
+      email: userData.email
+    });
+
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Resend activation link
+router.post("/resend-activation", async (req, res, next) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return next(new ErrorHandler("Please provide email!", 400));
+    }
+
+    // Check if user is already activated
+    const existingUser = await User.findOne({ email });
+    if (existingUser && existingUser.isActivated) {
+      return next(new ErrorHandler("Account is already activated!", 400));
+    }
+
+    // Get temp user data
+    const userData = tempUserData.get(email);
+    if (!userData) {
+      return next(new ErrorHandler("No pending registration found for this email!", 400));
+    }
+
+    // Generate new activation token
+    const activationToken = jwt.sign(
+      userData,
+      process.env.JWT_SECRET_KEY,
+      { expiresIn: "5m" }
+    );
+
+    const activationUrl = `http://localhost:3000/activation/${activationToken}`;
+
+    // Send new email
+    try {
+      await sendMail({
+        email: userData.email,
+        subject: "Activate Your StackMart Account",
+        message: `Hello ${userData.name},\n\nPlease click the link below to activate your account:\n${activationUrl}\n\nThis link will expire in 5 minutes.\n\nBest regards,\nThe StackMart Team`,
+        activationUrl: activationUrl,
+        name: userData.name
+      });
+    } catch (err) {
+      console.error("Error sending email:", err);
+      return next(new ErrorHandler("Failed to send activation email", 500));
+    }
+
+    res.status(200).json({
+      success: true,
+      message: `Activation link resent! Please check your email: ${userData.email}!`
     });
 
   } catch (error) {
@@ -115,6 +176,9 @@ router.post("/activation", async (req, res, next) => {
       isActivated: true
     });
 
+    // Remove temp data
+    tempUserData.delete(email);
+
     res.status(201).json({
       success: true,
       user
@@ -137,7 +201,7 @@ router.post("/login-user", async (req, res, next) => {
     const user = await User.findOne({ email }).select("+password");
 
     if (!user) {
-      return next(new ErrorHandler("Invalid email or password!", 401));
+      return next(new ErrorHandler("Wrong email or password!", 401));
     }
 
     if (!user.isActivated) {
@@ -147,7 +211,7 @@ router.post("/login-user", async (req, res, next) => {
     const isPasswordMatched = await user.comparePassword(password);
 
     if (!isPasswordMatched) {
-      return next(new ErrorHandler("Invalid email or password!", 401));
+      return next(new ErrorHandler("Wrong email or password!", 401));
     }
 
     const token = user.getJwtToken();

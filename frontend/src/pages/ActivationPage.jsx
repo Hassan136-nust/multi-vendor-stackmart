@@ -3,6 +3,7 @@ import React, { useEffect } from "react";
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { server } from "../server";
+import { FaSpinner } from "react-icons/fa";
 
 const ActivationPage = () => {
   const { activation_token } = useParams();
@@ -15,10 +16,9 @@ const ActivationPage = () => {
     if (activation_token) {
       const sendRequest = async () => {
         try {
-          const res = await axios.post(`${server}/user/activation`, {
+          await axios.post(`${server}/user/activation`, {
             activation_token,
           });
-          console.log(res);
           setSuccess(true);
           setLoading(false);
           setTimeout(() => {
@@ -46,13 +46,19 @@ const ActivationPage = () => {
       }}
     >
       {loading ? (
-        <p className="text-xl text-gray-600">Activating your account...</p>
+        <div className="flex flex-col items-center gap-2">
+          <FaSpinner className="animate-spin text-blue-600 text-2xl" />
+          <p className="text-xl text-gray-600">Activating your account...</p>
+        </div>
       ) : error ? (
-        <p className="text-xl text-red-600">Your token is expired!</p>
+        <div className="text-center">
+          <p className="text-xl text-red-600 mb-2">Your token is invalid or expired!</p>
+          <p className="text-gray-600">Please try signing up again</p>
+        </div>
       ) : (
         <div className="text-center">
-          <p className="text-xl text-green-600 mb-4">Your account has been created successfully!</p>
-          <p className="text-gray-500">Redirecting to login page...</p>
+          <p className="text-xl text-green-600 mb-2">Your account has been created successfully!</p>
+          <p className="text-gray-600">Redirecting to login page...</p>
         </div>
       )}
     </div>
