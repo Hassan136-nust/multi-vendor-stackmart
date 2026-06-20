@@ -1,5 +1,6 @@
 const express = require("express");
 const path = require("path");
+const jwt = require("jsonwebtoken");
 
 const router = express.Router();
 const upload = require("../multer");
@@ -7,6 +8,7 @@ const User = require("../model/user");
 const ErrorHandler = require("../utils/ErrorHandler");
 const sendMail = require("../utils/sendMail");
 const fs = require("fs");
+
 router.post("/create-user", upload.single("avatar"), async (req, res, next) => {
   try {
     const { name, email, password } = req.body;
@@ -35,8 +37,8 @@ router.post("/create-user", upload.single("avatar"), async (req, res, next) => {
     // file path (stored in DB)
     const fileUrl = path.join("uploads", filename);
 
-    // create user
-    const user = await User.create({
+    // create user data object
+    const userData = {
       name,
       email,
       password,
@@ -44,18 +46,74 @@ router.post("/create-user", upload.single("avatar"), async (req, res, next) => {
         public_id: filename,
         url: fileUrl
       }
-    });
+    };
 
-    // send welcome email
+    // generate activation token
+    const activationToken = jwt.sign(
+      userData,
+      process.env.JWT_SECRET_KEY,
+      { expiresIn: "5m" }
+    );
+
+    // create activation link
+    const activationUrl = `http://localhost:3000/activation/${activationToken}`;
+
+    // send activation email
     try {
       await sendMail({
-        email: user.email,
-        subject: "Welcome to StackMart!",
-        message: `Hello ${user.name},\n\nYour account has been successfully created! You can now log in using your email and password.\n\nBest regards,\nThe StackMart Team`
+        email: userData.email,
+        subject: "Activate Your StackMart Account",
+        message: `Hello ${userData.name},\n\nPlease click the link below to activate your account:\n${activationUrl}\n\nThis link will expire in 5 minutes.\n\nBest regards,\nThe StackMart Team`,
+        activationUrl: activationUrl,
+        name: userData.name
       });
     } catch (err) {
       console.error("Error sending email:", err);
+      return next(new ErrorHandler("Failed to send activation email", 500));
     }
+
+    res.status(201).json({
+      success: true,
+      message: `Please check your email: ${userData.email} to activate your account!`
+    });
+
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Activate user
+router.post("/activation", async (req, res, next) => {
+  try {
+    const { activation_token } = req.body;
+
+    // verify the token
+    const newUser = jwt.verify(
+      activation_token,
+      process.env.JWT_SECRET_KEY
+    );
+
+    if (!newUser) {
+      return next(new ErrorHandler("Invalid token", 400));
+    }
+
+    const { name, email, password, avatar } = newUser;
+
+    // check if user already exists
+    let user = await User.findOne({ email });
+
+    if (user) {
+      return next(new ErrorHandler("User already exists", 400));
+    }
+
+    // create user
+    user = await User.create({
+      name,
+      email,
+      password,
+      avatar,
+      isActivated: true
+    });
 
     res.status(201).json({
       success: true,
@@ -63,7 +121,7 @@ router.post("/create-user", upload.single("avatar"), async (req, res, next) => {
     });
 
   } catch (error) {
-    next(error);
+    return next(new ErrorHandler(error.message, 400));
   }
 });
 
@@ -80,6 +138,10 @@ router.post("/login-user", async (req, res, next) => {
 
     if (!user) {
       return next(new ErrorHandler("Invalid email or password!", 401));
+    }
+
+    if (!user.isActivated) {
+      return next(new ErrorHandler("Please activate your account first!", 400));
     }
 
     const isPasswordMatched = await user.comparePassword(password);

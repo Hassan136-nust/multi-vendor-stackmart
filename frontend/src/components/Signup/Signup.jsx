@@ -39,12 +39,8 @@ const handleFileInputChange = (e) => {
 
     axios
       .post(`${server}/user/create-user`, formData)
-      .then(() => {
-        toast.success("Signup successful! Please login to your account.");
-        setTimeout(() => {
-          navigate("/login");
-        }, 1500);
-
+      .then((res) => {
+        toast.success(res.data.message);
         // clear inputs
         setName("");
         setEmail("");
