@@ -217,7 +217,7 @@ export const navItems = [
     id: 5,
     title: "Shoes",
     image_Url:
-      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQvBQPQMVNRd6TtDkGs2dCri0Y-rxKkFOiEWw&usqp=CAU",
+      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTIWxgIBdI-Hsf-cNcudVTk-HdX5oxA7u9tsQ&s",
   },
   {
     id: 6,
