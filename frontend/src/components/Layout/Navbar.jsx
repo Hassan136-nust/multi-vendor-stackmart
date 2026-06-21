@@ -5,12 +5,12 @@ import styles from '../../styles/styles'
 
 const Navbar = ({active}) => {
   return (
-    <div className={`block 800px:${styles.noramlFlex}`}>
+    <div className={`flex flex-col md:flex-row`}>
          {
             navItems && navItems.map((i,index) => (
-                <div key={navItems.id || index} className="flex">
+                <div key={i.id || index} className="flex">
                     <Link to={i.url}
-                    className={`${active === index + 1 ? "text-[#17dd1f]" : "text-black 800px:text-[#fff]"} pb-[30px] 800px:pb-0 font-[500] px-6 cursor-pointer}`}
+                    className={`${active === index + 1 ? "text-[#17dd1f] font-bold" : "text-black md:text-[#fff] text-white/90"} font-medium px-4 py-2 cursor-pointer hover:text-white`}
                     >
                     {i.title}
                     </Link>

@@ -8,6 +8,7 @@ const User = require("../model/user");
 const ErrorHandler = require("../utils/ErrorHandler");
 const sendMail = require("../utils/sendMail");
 const fs = require("fs");
+const { isAuthenticated } = require("../middleware/auth");
 
 // Store temporary user data for resend (in real app, use Redis or similar)
 const tempUserData = new Map();
@@ -38,7 +39,7 @@ router.post("/create-user", upload.single("avatar"), async (req, res, next) => {
     const filename = req.file.filename;
 
     // file path (stored in DB)
-    const fileUrl = path.join("uploads", filename);
+    const fileUrl = path.join("uploads", filename).replace(/\\/g, "/");
 
     // create user data object
     const userData = {
@@ -234,6 +235,24 @@ router.post("/login-user", async (req, res, next) => {
   } catch (error) {
     console.error("Login error:", error);
     next(error);
+  }
+});
+
+// Get user info
+router.get("/getuser", isAuthenticated, async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user.id);
+
+    if (!user) {
+      return next(new ErrorHandler("User doesn't exist", 400));
+    }
+
+    res.status(200).json({
+      success: true,
+      user,
+    });
+  } catch (error) {
+    return next(new ErrorHandler(error.message, 400));
   }
 });
 
