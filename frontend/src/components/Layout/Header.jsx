@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import styles from "../../styles/styles";
+import { useEffect } from "react";
 import { categoriesData, productData } from "../../static/data";
 import {
   AiOutlineHeart,
@@ -30,6 +31,7 @@ const Header = ({ activeHeading }) => {
   const [openCart, setOpenCart] = useState(false);
   const [openWishlist, setOpenWishlist] = useState(false);
   const [open, setOpen] = useState(false);
+  const [showSearch, setShowSearch] = useState(true);
 
   const handleSearchChange = (e) => {
     const term = e.target.value;
@@ -43,13 +45,25 @@ const Header = ({ activeHeading }) => {
     setSearchData(filteredProducts);
   };
 
-  window.addEventListener("scroll", () => {
+  
+
+useEffect(() => {
+  const handleScroll = () => {
     if (window.scrollY > 70) {
       setActive(true);
+      setShowSearch(false); // hide search box
     } else {
       setActive(false);
+      setShowSearch(true); // show search box again
     }
-  });
+  };
+
+  window.addEventListener("scroll", handleScroll);
+
+  return () => {
+    window.removeEventListener("scroll", handleScroll);
+  };
+}, []);
 
   return (
     <>
@@ -60,8 +74,9 @@ const Header = ({ activeHeading }) => {
         } transition w-full`}
       >
         {/* Top light section */}
-        <div className="bg-white hidden md:block">
-          <div className={`${styles.section} flex items-center justify-between py-4`}>
+       {showSearch && (
+  <div className="bg-white hidden md:block">
+    <div className={`${styles.section} flex items-center justify-between py-4`}>
             {/* Logo */}
             <Link to="/" className="flex items-center">
               <img
@@ -72,7 +87,8 @@ const Header = ({ activeHeading }) => {
             </Link>
 
             {/* Search box */}
-            <div className="w-[45%] relative">
+          {showSearch && (
+  <div className="w-[45%] relative">
               <input
                 type="text"
                 placeholder="Search Product..."
@@ -103,7 +119,8 @@ const Header = ({ activeHeading }) => {
                     })}
                 </div>
               ) : null}
-            </div>
+         </div>
+)}
 
             {/* Become Seller */}
             <div className={`${styles.button} px-6 py-3 rounded-lg`}>
@@ -113,9 +130,9 @@ const Header = ({ activeHeading }) => {
                 </h1>
               </Link>
             </div>
-          </div>
-        </div>
-
+              </div>
+  </div>
+)}
         {/* Bottom blue section */}
         <div className="bg-[#2563eb] hidden md:block">
           <div className={`${styles.section} flex items-center justify-between h-[70px]`}>
